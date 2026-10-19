@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calcs & Conversions</title>
+
+<!-- PWA Metadata & iOS Support -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7a2412">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calcs & Conv">
+<link rel="apple-touch-icon" href="icon.svg">
+
+<style>
+  :root {
+    --map: #cdd8dc;           /* carta da mappa */
+    --grid: rgba(70, 98, 112, .22);
+    --grid-major: rgba(70, 98, 112, .38);
+    --parch: #fbf0d6;         /* pergamena del blocco */
+    --parch-dark: #e6d3a3;
+    --field: #fffaf0;
+    --ink: #2a2118;
+    --red: #7a2412;           /* rosso dei blocchi statistiche */
+    --rule: #922610;
+    --edge: #a8864a;
+    --muted: #6a5a3f;
+    --shadow: rgba(30, 24, 14, .45);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --map: #151b22;
+      --grid: rgba(120, 150, 170, .12);
+      --grid-major: rgba(120, 150, 170, .22);
+      --parch: #2b2419;
+      --parch-dark: #1d1810;
+      --field: #1d1810;
+      --ink: #eadfc6;
+      --red: #e58a6f;
+      --rule: #b5432c;
+      --edge: #6b5a3a;
+      --muted: #b3a283;
+      --shadow: rgba(0, 0, 0, .6);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--ink);
+    font: 17px/1.55 Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    background-color: var(--map);
+    background-image:
+      linear-gradient(var(--grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 150px 150px, 150px 150px, 30px 30px, 30px 30px;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 28px 16px 56px; }
+
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  header svg { flex: none; width: 58px; height: 58px; filter: drop-shadow(1px 2px 1px var(--shadow)); }
+  h1 { margin: 0; font-size: 2rem; line-height: 1.1; font-weight: 700;
+    font-variant: small-caps; letter-spacing: .03em; color: var(--red);
+    text-shadow: 0 1px 0 rgba(255,255,255,.35); }
+  .sub { margin: 2px 0 0; font-style: italic; font-size: .92rem; color: var(--muted); }
+  @media (prefers-color-scheme: dark) { h1 { text-shadow: none; } .sub { color: var(--muted); } }
+
+  /* Schede */
+  .tabs { display: flex; gap: 4px; padding-left: 6px; position: relative; z-index: 1; }
+  .tabs button {
+    flex: 1 1 0; max-width: 150px; padding: 8px 10px 7px; margin-bottom: -1px;
+    font: inherit; font-variant: small-caps; font-size: 1.02rem; letter-spacing: .03em;
+    color: var(--muted); background: var(--parch-dark); cursor: pointer;
+    border: 1px solid var(--edge); border-bottom-color: var(--edge); border-radius: 6px 6px 0 0;
+  }
+  .tabs button[aria-selected="true"] {
+    background: var(--parch); color: var(--red); font-weight: 700; border-bottom-color: var(--parch);
+  }
+  .tabs button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--rule); outline-offset: 2px;
+  }
+
+  /* Blocco statistiche */
+  .block {
+    background: var(--parch); border: 1px solid var(--edge); border-radius: 0 4px 4px 4px;
+    padding: 18px 20px 16px; box-shadow: 0 2px 10px var(--shadow);
+    background-image: linear-gradient(var(--parch), var(--parch));
+  }
+  .block::before, .block::after {
+    content: ""; display: block; height: 5px; background: var(--rule);
+    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  }
+  .block::before { margin: -8px 0 14px; }
+  .block::after { margin: 14px 0 0; }
+
+  .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: block; font-weight: 700; font-style: italic; color: var(--red); font-size: .95rem; margin-bottom: 3px; }
+  input, select {
+    width: 100%; padding: 9px 10px; font: inherit; color: var(--ink);
+    background: var(--field); border: 1px solid var(--edge); border-radius: 3px;
+  }
+  input { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+
+  .rule { height: 5px; background: var(--rule); margin: 16px 0 6px; clip-path: polygon(0 50%, 100% 0, 100% 100%); }
+
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 7px 2px; border-bottom: 1px dotted var(--edge); vertical-align: baseline; }
+  tr:last-child td { border-bottom: 0; }
+  td.unit { font-weight: 700; font-style: italic; color: var(--red); white-space: nowrap; padding-right: 12px; }
+  td.val { text-align: right; font-size: 1.12rem; font-variant-numeric: tabular-nums; word-break: break-all; }
+  tr.src td.unit::after { content: " (partenza)"; font-weight: 400; font-size: .8rem; color: var(--muted); }
+
+  .ref { margin: 0; font-size: .88rem; font-style: italic; color: var(--muted); }
+  @media (max-width: 440px) {
+    .inputs { grid-template-columns: 1fr; }
+    h1 { font-size: 1.65rem; }
+    header svg { width: 48px; height: 48px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <polygon points="50,5 89,27.5 89,72.5 50,95 11,72.5 11,27.5" fill="#922610" stroke="#2a2118" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="50,19 78,66 22,66" fill="none" stroke="#f3dcb0" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M50 5 50 19M89 27.5 78 66M11 27.5 22 66M89 72.5 78 66M11 72.5 22 66M50 95 22 66M50 95 78 66M50 19 89 27.5M50 19 11 27.5" stroke="#f3dcb0" stroke-width="1.5" fill="none" opacity=".7"/>
+      <text x="50" y="58" text-anchor="middle" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#fbf0d6">20</text>
+    </svg>
+    <div>
+      <h1>Calcs &amp; Conversions</h1>
+      <p class="sub">Misure di Dungeons &amp; Dragons in unità metriche</p>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <section class="block">
+    <div class="inputs">
+      <div>
+        <label for="value">Valore</label>
+        <input id="value" type="text" inputmode="decimal" value="1" autocomplete="off">
+      </div>
+      <div>
+        <label for="from">Unità di partenza</label>
+        <select id="from"></select>
+      </div>
+    </div>
+    <div class="rule"></div>
+    <table><tbody id="out"></tbody></table>
+    <p class="ref" id="ref" style="margin-top:12px"></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var CATS = {
+    lineari: {
+      label: "Lineari",
+      units: [
+        ["piede", "piedi", 0.3], ["quadretto", "quadretti", 1.5], ["miglio", "miglia", 1500],
+        ["cm", "cm", 0.01], ["m", "m", 1], ["km", "km", 1000]
+      ],
+      out: ["cm", "m"],
+      outBy: { "km": ["miglio", "m"], "miglio": ["km", "m"] },
+      ref: "1 piede = 30 cm · 1 quadretto = 5 piedi = 1,5 m · 1 miglio = 1,5 km"
+    },
+    area: {
+      label: "Area",
+      units: [
+        ["piede²", "piedi²", 0.09], ["quadretto²", "quadretti²", 2.25], ["miglio²", "miglia²", 2250000],
+        ["cm²", "cm²", 0.0001], ["m²", "m²", 1], ["km²", "km²", 1000000]
+      ],
+      out: ["cm²", "m²"],
+      outBy: { "km²": ["miglio²", "m²"], "miglio²": ["km²", "m²"] },
+      ref: "1 piede² = 30×30 cm = 900 cm² · 1 quadretto² = 2,25 m² · 1 miglio² = 2,25 km²"
+    },
+    volume: {
+      label: "Volume",
+      units: [
+        ["piede³", "piedi³", 0.027], ["quadretto³", "quadretti³", 3.375],
+        ["cm³", "cm³", 0.000001], ["litro", "litri", 0.001], ["m³", "m³", 1],
+        ["miglio³", "miglia³", 3375000000], ["km³", "km³", 1000000000]
+      ],
+      out: ["cm³", "m³", "litro"],
+      outBy: { "km³": ["miglio³", "m³"], "miglio³": ["km³", "m³"] },
+      ref: "1 piede³ = 30×30×30 cm = 27.000 cm³ · 1 quadretto³ = 3,375 m³ · 1 litro = 1.000 cm³ · 1 miglio³ = 3,375 km³"
+    },
+    peso: {
+      label: "Peso",
+      units: [
+        ["libbra", "libbre", 0.5], ["g", "g", 0.001], ["kg", "kg", 1]
+      ],
+      out: ["g", "kg"],
+      ref: "1 libbra = 0,5 kg"
+    }
+  };
+
+  var tabsEl = document.getElementById("tabs");
+  var valueEl = document.getElementById("value");
+  var fromEl = document.getElementById("from");
+  var outEl = document.getElementById("out");
+  var refEl = document.getElementById("ref");
+  var current = "lineari";
+
+  var nf = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 6 });
+
+  function fmt(n) {
+    if (!isFinite(n)) return "—";
+    n = parseFloat(n.toPrecision(12));
+    var a = Math.abs(n);
+    if (a !== 0 && (a >= 1e12 || a < 1e-6)) {
+      return n.toExponential(5).replace(".", ",").replace(/,?0+e/, "e");
+    }
+    return nf.format(n);
+  }
+
+  function parse(s) {
+    s = String(s).trim().replace(/\s/g, "");
+    if (!s) return NaN;
+    if (s.indexOf(",") !== -1) s = s.replace(/\./g, "").replace(",", ".");
+    else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+    return Number(s);
+  }
+
+  function label(u, v) { return Math.abs(v) === 1 ? u[0] : u[1]; }
+
+  function render() {
+    var cat = CATS[current];
+    var v = parse(valueEl.value);
+    var idx = parseInt(fromEl.value, 10);
+    var baseVal = v * cat.units[idx][2];
+    outEl.innerHTML = "";
+    var outKeys = (cat.outBy && cat.outBy[cat.units[idx][0]]) || cat.out;
+    outKeys.forEach(function (key) {
+      var i = cat.units.findIndex(function (x) { return x[0] === key; });
+      var u = cat.units[i];
+      var tr = document.createElement("tr");
+      if (i === idx) tr.className = "src";
+      var r = baseVal / u[2];
+      var tdU = document.createElement("td"); tdU.className = "unit"; tdU.textContent = isNaN(v) ? u[1] : label(u, r);
+      var tdV = document.createElement("td"); tdV.className = "val"; tdV.textContent = isNaN(v) ? "—" : fmt(r);
+      tr.appendChild(tdU); tr.appendChild(tdV);
+      outEl.appendChild(tr);
+    });
+    refEl.textContent = cat.ref;
+  }
+
+  function setCat(key) {
+    current = key;
+    Array.prototype.forEach.call(tabsEl.children, function (b) {
+      b.setAttribute("aria-selected", b.dataset.key === key ? "true" : "false");
+    });
+    fromEl.innerHTML = "";
+    CATS[key].units.forEach(function (u, i) {
+      var o = document.createElement("option");
+      o.value = i; o.textContent = u[1];
+      fromEl.appendChild(o);
+    });
+    render();
+  }
+
+  Object.keys(CATS).forEach(function (k) {
+    var b = document.createElement("button");
+    b.type = "button"; b.setAttribute("role", "tab"); b.dataset.key = k;
+    b.textContent = CATS[k].label;
+    b.addEventListener("click", function () { setCat(k); });
+    tabsEl.appendChild(b);
+  });
+
+  valueEl.addEventListener("input", render);
+  fromEl.addEventListener("change", render);
+  setCat("lineari");
+})();
+
+// Registrazione Service Worker per installabilità PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').catch(function(err) {
+      console.error('Registrazione SW fallita:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
