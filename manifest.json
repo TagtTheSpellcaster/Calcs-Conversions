@@ -1,0 +1,17 @@
+{
+  "name": "Calcs & Conversions D&D",
+  "short_name": "Calcs & Conv",
+  "description": "Convertitore di misure da D&D a unità metriche",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#cdd8dc",
+  "theme_color": "#7a2412",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
